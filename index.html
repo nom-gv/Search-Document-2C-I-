@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar Documentos</title>
+    <style>
+        /* Diseño para dispositivos de escritorio */
+        .container {
+            max-width: 70%;
+            margin: 0 auto;
+            font-family: 'Verdana', sans-serif;
+            font-size: 13px;
+        }
+
+        form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        select,
+        input[type="text"],
+        button {
+            margin-bottom: 10px;
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        select:focus,
+        input[type="text"]:focus,
+        button:focus {
+            outline: none;
+            border-color: #00529c;
+        }
+
+        button {
+            background-color: #00529c;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #285180;
+        }
+
+        .half-width {
+            width: 49%;
+        }
+
+        .other-width {
+            width: 99%;
+        }
+
+        .full-width {
+            width: 100%;
+        }
+
+        /* Estilo para tabla en escritorio */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            min-width: 600px;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        thead {
+            background-color: #00529c;
+            color: white;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            width: 100px; /* Asignar un ancho constante a todas las celdas para asegurar uniformidad */
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #00529c;
+            color: white;
+        }
+
+        td {
+            border-bottom: 1px solid #ddd;
+        }
+
+        th:nth-child(1),
+        td:nth-child(1) {
+            width: 10%;
+        }
+
+        th:nth-child(5),
+        td:nth-child(5) {
+            width: 40%;
+        }
+
+        /* Estilo para la vista móvil */
+        @media (max-width: 768px) {
+
+            .half-width {
+                width: 100%;
+            }
+
+            .table-container {
+                display: none;
+            }
+
+            .mobile-only {
+                display: block;
+                width: 100%;
+            }
+
+            .mobile-only div {
+                border: 1px solid #ddd;
+                margin-bottom: 10px;
+                padding: 10px;
+                background-color: #f9f9f9;
+            }
+
+            .mobile-only div:nth-child(odd) {
+                background-color: #f2f2f2;
+            }
+
+            .mobile-only span.label {
+                font-weight: bold;
+            }
+
+            .mobile-only a {
+                color: #00529c;
+                text-decoration: none;
+                font-weight: bold;
+            }
+
+            .mobile-only a:hover {
+                text-decoration: underline;
+            }
+        }
+
+        /* Estilo para ocultar la vista móvil en pantallas grandes */
+        @media (min-width: 769px) {
+            .mobile-only {
+                display: none;
+            }
+        }
+
+        /* Estilo para la paginación */
+        .pagination {
+            margin: 20px 0;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .pagination button,
+        .pagination span {
+            background-color: #00529c;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            margin: 0;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+        }
+
+        .pagination button:hover {
+            background-color: #285180;
+        }
+
+        .pagination button.active {
+            background-color: #ac0404; /* Color de fondo para la página activa */
+            color: white; /* Color del texto para la página activa */
+            border: 1px solid #007bff; /* Borde para la página activa */
+        }
+
+        .pagination span {
+            cursor: default;
+        }
+
+        .pagination .arrow {
+            font-weight: bold;
+        }
+
+        .pagination .arrow.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination .numbers {
+            display: flex;
+            gap: 4px;
+        }
+
+        .pagination .numbers button {
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            margin: 0;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 30px;
+        }
+
+        .pagination .numbers button.active {
+            background-color: #FF0000; /* Cambia el color de fondo a rojo */
+            color: white;
+        }
+
+        .pagination .numbers button:hover {
+            background-color: #003d6b;
+        }
+
+        .pagination .numbers button.disabled {
+            background-color: #ddd;
+            color: #aaa;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Buscar Documentos</h1>
+        <form id="searchForm">
+            <div class="other-width">
+                <label for="unit">Unidad:</label>
+                <select id="unit" name="unit">
+                    <option value="todos">TODOS</option>
+                    <option value="DAF">DAF</option>
+                    <option value="DPTO PPTO">DEPARTAMENTO DE PRESUPUESTO Y PLANIFICACIÓN FINANCIERA</option>
+                    <option value="DPTO CONTAB">DEPARTAMENTO DE CONTABILIDAD</option>
+                    <option value="DPTO TU">DEPARTAMENTO DE TESORO UNIVERSITARIO</option>
+                    <option value="DIV ADQ">DIVISIÓN DE ADQUISICIONES</option>
+                    <option value="DIV BINV">DIVISIÓN DE BIENES E INVENTARIOS</option>
+                    <option value="DIV STOT">SECCIÓN TÉCNICA DE OPERACIONES TRIBUTARIAS</option>
+                </select>
+            </div>
+
+            <div class="half-width">
+                <label for="documentType">Tipo de Documento:</label>
+                <select id="documentType" name="documentType">
+                    <option value="todos">TODOS</option>
+                    <option value="Circular">CIRCULARES</option>
+                    <option value="Instructivo">INSTRUCTIVOS</option>
+                    <option value="Comunicado">COMUNICADOS</option>
+                </select>
+            </div>
+
+            <div class="half-width">
+                <label for="year">Gestión:</label>
+                <select id="year" name="year">
+                    <option value="todos">TODOS</option>
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                    <option value="2022">2022</option>
+                    <option value="2021">2021</option>
+                    <option value="2020">2020</option>
+                    <option value="2019">2019</option>
+                    <option value="2018">2018</option>
+                    <option value="2017">2017</option>
+                </select>
+            </div>
+
+            <div class="half-width">
+                <label for="reference">Referencia:</label>
+                <input type="text" id="reference" name="reference" placeholder="Buscar por referencia">
+            </div>
+
+            <div class="half-width">
+                <label for="number">Número:</label>
+                <input type="text" id="number" name="number" placeholder="Buscar por número">
+            </div>
+
+            <div class="full-width">
+                <button type="submit">Buscar</button>
+            </div>
+        </form>
+
+        <div class="table-container">
+            <table id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>TIPO</th>
+                        <th>UNIDAD</th>
+                        <th>FECHA</th>
+                        <th>NÚMERO</th>
+                        <th>REFERENCIA</th>
+                        <th>ARCHIVO</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Los resultados de la búsqueda se agregarán aquí -->
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="6">Total de filas: 0</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Vista móvil -->
+        <div class="mobile-only">
+            <!-- Los resultados de la búsqueda se agregarán aquí en formato de lista -->
+        </div>
+
+        <!-- Contenedor para la paginación -->
+        <div class="pagination" id="paginationContainer"></div>
+        
+    </div>
+
+    <script>
+        const resultsPerPage = 15;
+        let currentPage = 1; // Página actual
+        let filteredResults = []; // Almacenar los resultados filtrados
+
+        document.getElementById('searchForm').addEventListener('submit', function (event) {
+            event.preventDefault(); // Evitar recargar la página al enviar el formulario
+            currentPage = 1; // Resetear a la primera página al realizar una nueva búsqueda
+            filterResults();
+        });
+
+        function filterResults() {
+            const unit = document.getElementById('unit').value.toLowerCase();
+            const documentType = document.getElementById('documentType').value.toLowerCase();
+            const year = document.getElementById('year').value.toLowerCase();
+            const reference = document.getElementById('reference').value.toLowerCase();
+            const number = document.getElementById('number').value.toLowerCase();
+
+            // Filtrar los resultados basados en los criterios de búsqueda
+            filteredResults = allResults.filter(result => {
+                const matchesUnit = (unit === 'todos') || result.unit.toLowerCase() === unit;
+                const matchesDocumentType = (documentType === 'todos') || result.type.toLowerCase() === documentType;
+                const matchesYear = (year === 'todos') || result.date.toLowerCase().includes(year);
+                const matchesReference = reference === '' || result.title.toLowerCase().includes(reference);
+                const matchesNumber = number === '' || result.number.toLowerCase().includes(number);
+
+                return matchesUnit && matchesDocumentType && matchesYear && matchesReference && matchesNumber;
+            });
+
+            updateTable();
+            updateMobileResults();
+            setupPagination();
+        }
+
+        function updateTable() {
+            const tbody = document.getElementById('resultsTable').querySelector('tbody');
+            tbody.innerHTML = ''; // Limpiar la tabla antes de agregar los resultados
+
+            // Aplicar paginación
+            const paginatedResults = filteredResults.slice((currentPage - 1) * resultsPerPage, currentPage * resultsPerPage);
+
+            paginatedResults.forEach(result => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${result.type}</td>
+                    <td>${result.unit}</td>
+                    <td>${result.date}</td>
+                    <td>${result.number}</td>
+                    <td>${result.title}</td>
+                    <td><a href="${result.file}" target="_blank">Ver archivo</a></td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Actualizar el pie de tabla con el total de filas
+            document.querySelector('tfoot td').textContent = `Total de filas: ${filteredResults.length}`;
+        }
+
+        function updateMobileResults() {
+            const mobileContainer = document.querySelector('.mobile-only');
+            mobileContainer.innerHTML = ''; // Limpiar los resultados móviles antes de agregar los nuevos
+
+            // Aplicar paginación
+            const paginatedResults = filteredResults.slice((currentPage - 1) * resultsPerPage, currentPage * resultsPerPage);
+
+            paginatedResults.forEach(result => {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <div><span class="label">Tipo:</span> ${result.type}</div>
+                    <div><span class="label">Unidad:</span> ${result.unit}</div>
+                    <div><span class="label">Fecha:</span> ${result.date}</div>
+                    <div><span class="label">Número:</span> ${result.number}</div>
+                    <div><span class="label">Referencia:</span> ${result.title}</div>
+                    <div><a href="${result.file}" target="_blank">Ver archivo</a></div>
+                `;
+                mobileContainer.appendChild(div);
+            });
+        }
+
+        function setupPagination() {
+            const paginationContainer = document.getElementById('paginationContainer');
+            paginationContainer.innerHTML = ''; // Limpiar la paginación antes de agregar nuevos botones
+
+            const totalPages = Math.ceil(filteredResults.length / resultsPerPage);
+            const maxVisiblePages = 7; // Máximo de páginas visibles en la paginación
+
+            if (totalPages <= 1) {
+                return; // No mostrar paginación si hay solo una página
+            }
+
+            // Función para crear un botón de página
+            function createPageButton(page, isActive = false, isEllipsis = false) {
+                const button = document.createElement('button');
+                if (isEllipsis) {
+                    button.textContent = '...';
+                    button.classList.add('disabled');
+                } else {
+                    button.textContent = page;
+                    if (isActive) {
+                        button.classList.add('active');
+                    }
+                    button.addEventListener('click', function () {
+                        if (!isActive && !isEllipsis) {
+                            currentPage = page;
+                            updateTable();
+                            setupPagination();
+                            window.scrollTo({ top: 0, behavior: 'smooth' }); // Desplazar hacia arriba
+                        }
+                    });
+                }
+                paginationContainer.appendChild(button);
+            }
+
+            // Función para crear las flechas de navegación
+            function createArrowButton(direction) {
+                const arrow = document.createElement('button');
+                arrow.textContent = direction === 'prev' ? '<' : '>';
+                arrow.classList.add('arrow');
+                arrow.addEventListener('click', function () {
+                    if ((direction === 'prev' && currentPage > 1) ||
+                        (direction === 'next' && currentPage < totalPages)) {
+                        currentPage += direction === 'prev' ? -1 : 1;
+                        updateTable();
+                        setupPagination();
+                        window.scrollTo({ top: 0, behavior: 'smooth' }); // Desplazar hacia arriba
+                    }
+                });
+                if ((direction === 'prev' && currentPage === 1) ||
+                    (direction === 'next' && currentPage === totalPages)) {
+                    arrow.classList.add('disabled');
+                }
+                paginationContainer.appendChild(arrow);
+            }
+
+            createArrowButton('prev'); // Crear flecha izquierda
+
+            // Determinar las páginas visibles
+            let startPage, endPage;
+
+            if (totalPages <= maxVisiblePages) {
+                // Mostrar todas las páginas
+                startPage = 1;
+                endPage = totalPages;
+                for (let i = startPage; i <= endPage; i++) {
+                    createPageButton(i, currentPage === i);
+                }
+            } else {
+                if (currentPage <= 4) {
+                    // Caso inicial
+                    startPage = 1;
+                    endPage = 5;
+                    for (let i = startPage; i <= endPage; i++) {
+                        createPageButton(i, currentPage === i);
+                    }
+                    createPageButton(null, false, true); // Ellipsis
+                    createPageButton(totalPages, currentPage === totalPages);
+                } else if (currentPage >= totalPages - 3) {
+                    // Cuando se encuentra cerca del final
+                    createPageButton(1, currentPage === 1);
+                    createPageButton(null, false, true); // Ellipsis
+                    startPage = totalPages - 4;
+                    endPage = totalPages;
+                    for (let i = startPage; i <= endPage; i++) {
+                        createPageButton(i, currentPage === i);
+                    }
+                } else {
+                    // Casos intermedios
+                    createPageButton(1, currentPage === 1);
+                    createPageButton(null, false, true); // Ellipsis
+                    createPageButton(currentPage - 1, false, false);
+                    createPageButton(currentPage, true, false); // Página actual
+                    createPageButton(currentPage + 1, false, false);
+                    createPageButton(null, false, true); // Ellipsis
+                    createPageButton(totalPages, currentPage === totalPages);
+                }
+            }
+
+            createArrowButton('next'); // Crear flecha derecha
+        }
+
+        // Simulación de datos de ejemplo
+        var allResults = [
+            { type: 'Instructivo', unit: 'DAF', date: '2024-07-09', number: '009', title: 'Compra por catalogo electrónico - Compro hecho en Bolivia.', file: 'https://drive.google.com/open?id=1HFjVXpMvy8-ctg1BUC4V37LLPtK6CRuo' },
+            { type: 'Instructivo', unit: 'DAF', date: '2024-06-10', number: '008', title: 'Remisión de observaciones al RE-SABS trabajado en la gestión pasada', file: 'https://drive.google.com/open?id=1xpaZhA5GOCm4GLTItHfVYu8aheSNpV5q' },
+            { type: 'Instructivo', unit: 'DAF', date: '2024-05-14', number: '007', title: 'Reiteración de elaboración del PAC e informes trimestrales de seguimiento, gestión 2024', file: 'https://drive.google.com/open?id=13YpjodwfMNJtVqqti-XFyU1L9UKTluSx' },
+            { type: 'Instructivo', unit: 'DAF', date: '2024-02-05', number: '004', title: 'Compra de material de escritorio, toner, papeleria y material de limpieza', file: 'https://drive.google.com/open?id=1CdTeqsWZHbZrrJxCwRa4v7dJpaIkjh8t' },
+            { type: 'Instructivo', unit: 'DAF', date: '2024-02-28', number: '003', title: 'Lineamientos para consultorías individuales financiadas con recursos de la administración central', file: 'https://drive.google.com/open?id=11UQBlfDfZ482x7K81FwR7CCn26vVsz8I' },
+            { type: 'Instructivo', unit: 'DAF', date: '2024-01-24', number: '002', title: 'Presentación de documentación en ventanilla central y dirección administrativa financiera', file: 'https://drive.google.com/open?id=1m3dMQ4w1oaDF_Nlv5AZzk7Ib-vFfsFLS' },
+            { type: 'Instructivo', unit: 'DAF', date: '2024-01-04', number: '001', title: 'Precautelar la estabilidad de estructura del "Edificio Hoy, Av. 6 de Agosto Nro. 2170"', file: 'https://drive.google.com/open?id=1jcn0mXtqkJCUUfOW7Jwnnkbg3Oq0S8Ln' },
+            { type: 'Circular', unit: 'DAF', date: '2024-07-31', number: '011', title: 'Taller coordinación intrainstitucional para la elaboración del presupuesto 2025', file: 'https://drive.google.com/open?id=1WYvF8MGFEl0BCUMG1zbRJ6BuIsz8yCA8' },
+            { type: 'Circular', unit: 'DAF', date: '2024-07-30', number: '010', title: 'Lineamientos para consultorías individuales financiadas con recursos de la administración central', file: 'https://drive.google.com/open?id=1fl8mWatooXjBobSkuDMupDpitMGto68o' },
+            { type: 'Circular', unit: 'DAF', date: '2024-07-08', number: '009', title: 'Ajustes al "Sistema integrado financiero universitario SIFU+"', file: 'https://drive.google.com/open?id=1TFgZR58aKV0Q1vnGSBeBcDEmtBxtaH42' },
+            { type: 'Circular', unit: 'DAF', date: '2024-05-23', number: '008', title: 'Cumplimiento del DS 0181, DS 4405, manual de procesos y procedimientos y RESABS en solicitudes de contratación', file: 'https://drive.google.com/open?id=1OV1wA3hVsnnjs1DunTENhJ9M-lXM_Ol3' },
+            { type: 'Circular', unit: 'DAF', date: '2024-03-20', number: '007', title: 'Compra de material de escritorio, toner, tinta, papeleria y material de limpieza - Entrega de kardex', file: 'https://drive.google.com/open?id=1GZXXzCXQlUsjfsN3N9wObUxz60E50kS6' },
+            { type: 'Circular', unit: 'DAF', date: '2024-02-29', number: '006', title: 'Aplicación y cumplimiento resolución del HCU nro 547-2023 y Resolución de HCU nro 548-2023', file: 'https://drive.google.com/open?id=1NVeNmoGl9Lb_3BSDmRzYwURbphds0bGZ' },
+            { type: 'Circular', unit: 'DAF', date: '2024-02-23', number: '005', title: 'Extensión de plazos para justificar financiamiento del "Fortalecimiento de institutos de investigación"', file: 'https://drive.google.com/open?id=1YdigbwWHFpjXlFb827dWL0_N9IJMQY8H' },
+            { type: 'Circular', unit: 'DAF', date: '2024-02-18', number: '004', title: '1ra transferencia del fondo de operación facultativa - Gestión 2024', file: 'https://drive.google.com/open?id=1r3rzrXx-DU8nBLMBv2eGlfSYAD34ztfG' },
+            { type: 'Circular', unit: 'DAF', date: '2024-02-06', number: '003', title: 'Aplicación del catálogo electrónico compro hecho en Bolivia, en el marco de la ley 1257 del 12 de Octubre de 2019', file: 'https://drive.google.com/open?id=1AcBoCFuj0zCi27-O8KOvDfVjdAyCcUkr' },
+            { type: 'Circular', unit: 'DAF', date: '2024-02-01', number: '002', title: 'Capacitación operativa del "Sistema integrado financiero universitario SIFU+"', file: 'https://drive.google.com/open?id=1fmhNd2rv0-QKB5oqrXMKj7pf05tjV8gz' },
+            { type: 'Circular', unit: 'DAF', date: '2024-01-25', number: '001', title: 'Capacitación operativa del "Sistema integrado financiero universitario SIFU+"', file: 'https://drive.google.com/open?id=1u8ccpObAoZGolVko-hOHhlYnLVf2R1eh' },
+
+            { type: 'Instructivo', unit: 'DPTO PPTO', date: '2024-08-13', number: '005', title: 'Documentos de respaldo de la formulación del POA y presupuesto 2025', file: 'https://drive.google.com/open?id=1yFrO9jIwK6D2BWxU-9DCfX5lIELPh0p7' },
+            { type: 'Instructivo', unit: 'DPTO PPTO', date: '2024-02-16', number: '002', title: 'Pago de servicios básicos - 2024', file: 'https://drive.google.com/open?id=1paLJbmNKIIy-5CLk7mBXxBmhMIPEHU7H' },
+            { type: 'Instructivo', unit: 'DPTO PPTO', date: '2024-01-02', number: '001', title: 'Composición de saldos caja y bancos 2023, otras fuentes financieras, y programación financiera del presupuesto de gasto de inversión pública', file: 'https://drive.google.com/open?id=1tEif5l6wnnh35RF_bz7L1VlbIhO7HZ5s' },
+            { type: 'Circular', unit: 'DPTO PPTO', date: '2024-06-24', number: '006', title: 'Presentación del 2do informe de avance de actividades y proyectos gestión 2024', file: 'https://drive.google.com/open?id=1VkFHBG-94RI-czffrPX3SnMHKBJ_mNqD' },
+            { type: 'Circular', unit: 'DPTO PPTO', date: '2024-05-20', number: '005', title: 'Cambio de fecha para presentar presupuesto adicional de recursos propios gestión 2024', file: 'https://drive.google.com/open?id=19fiMca1Z21dPXv9HlYwoZAb7RP6v1qy8' },
+            { type: 'Comunicado', unit: 'DPTO PPTO', date: '2024-08-09', number: '004', title: 'Formulación del POA - presupuesto 2025 y registro SIFU', file: 'https://drive.google.com/open?id=1A58mT4TNL73gVPkA5p7-PjiKpbfGxrkN' },
+
+            { type: 'Instructivo', unit: 'DPTO TU', date: '2024-02-13', number: '001', title: 'Cheques en transito gestión 2023 individuales y agrupados, expirados y que deben ser anulados', file: 'https://drive.google.com/open?id=1vKQPvWgDmOUGTFLO3y5T3eBKx2Gvt10t' },
+            { type: 'Circular', unit: 'DPTO TU', date: '2024-02-0', number: '001', title: 'Presentación de la información de flujo de caja mensual', file: 'https://drive.google.com/open?id=1bfHuC6-CI6oaQnuuB2PNgqH8Evt2i6M1' },
+
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2024-07-30', number: '006', title: 'Control en la asignación de pasajes y viáticos', file: 'https://drive.google.com/open?id=17PEHOHLz2GJNBxr4_KFh6_1EZ5AdMsdu' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2024-07-01', number: '005', title: 'Registro obligatorio de salidas y retorno en horario de trabajo', file: 'https://drive.google.com/open?id=1JER9C2TdR3bjOA6rZ8at9VBMSJ-IhvUc' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2024-06-11', number: '004', title: 'Preparar una presentación de sus tareas en el departamento', file: 'https://drive.google.com/open?id=1acYoHlljjesKKTo84DalmbgVefpqFY5k' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2024-05-20', number: '003', title: 'Informar de manera escrita a esta jefatura sobre las actividades y responsabilidades que tienen en su cargo', file: 'https://drive.google.com/open?id=1hx3tZIbWQrbehwu7M-Vva9xF0M2ACAey' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2024-04-08', number: '002', title: 'Informar directamente a jefatura sobre salidas y retornos del personal', file: 'https://drive.google.com/open?id=1egSGT1StZdrbwqKuQpLLek60DRh0tD7G' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2024-03-22', number: '001', title: 'Garantia de cumplimiento de contrato', file: 'https://drive.google.com/open?id=1e3NYhrInCB6NmqTTDTGzX0kYvuptUnUm' },
+
+            { type: 'Instructivo', unit: 'DPTO STOT', date: '2024-02-20', number: '002', title: 'Remesas al exterior F-3050 por pago de servicios al extranjero', file: 'https://drive.google.com/open?id=1Ikg99yqyzFnORppW3UOMTt2viQrqbsKd' },
+            { type: 'Instructivo', unit: 'DPTO STOT', date: '2024-01-25', number: '001', title: 'Procedimientos de descargo al servicio de té o refrigerio para consultores en línea', file: 'https://drive.google.com/open?id=1HB6SXDdYE8k0iDoYMB3-rMzLz2cu_V1O' },
+
+            { type: 'Instructivo', unit: 'DAF', date: '2023-11-29', number: '011', title: 'Modelo de informe de viaje para el descargo de fondos por pasajes y viáticos', file: 'https://drive.google.com/open?id=1SM8ZdNNxrw3TXvDwrYbizu14kL2lIXtX' },
+            { type: 'Instructivo', unit: 'DAF', date: '2023-10-20', number: '010', title: 'Instructivo y agenda para el cierre de operaciones presupuestarias contables y de tesorería, gestión fiscal 2023', file: 'https://drive.google.com/open?id=1uLgm6grtg7LJm6IpplikcPsdWP-cDN6K' },
+            { type: 'Instructivo', unit: 'DAF', date: '2023-09-12', number: '009', title: 'Actividades para el pre cierre contable al 30 de Septiembre de 2023', file: 'https://drive.google.com/open?id=1L9L00dmajsZ-5dNuCrtAQ2vEUcxiWPM1' },
+            { type: 'Instructivo', unit: 'DAF', date: '2023-08-28', number: '008', title: 'Ampliación del plazo para el registro en sistema SIFU+ de la formulación de POA y presupuesto 2024', file: 'https://drive.google.com/open?id=1QkI72g8OOwzvT1k_KYHu2waHY_oQuv-y' },
+            { type: 'Instructivo', unit: 'DAF', date: '2023-08-04', number: '007', title: 'Formulación de POA y presupuesto 2024', file: 'https://drive.google.com/open?id=1lznAE0YbH77k9XjzGYB1j46SXZY3QHyg' },
+            { type: 'Instructivo', unit: 'DAF', date: '2023-05-10', number: '004', title: 'Compra de material de escritorio, limpieza y tonners', file: 'https://drive.google.com/open?id=12kfvA6H8wqs342MRQCqFSPTWnNtBNCJX' },
+            { type: 'Instructivo', unit: 'DAF', date: '2023-02-17', number: '002', title: 'Solicitud de información para el departamento de auditoría interna', file: 'https://drive.google.com/open?id=12kfvA6H8wqs342MRQCqFSPTWnNtBNCJX' },
+            { type: 'Circular', unit: 'DAF', date: '2023-11-30', number: '007', title: 'Pago a consultores individuales de Linea, Becas Estudiantiles, Trabajo dirigido, Servicios públicos y otros, correspondiente al mes de Diciembre', file: 'https://drive.google.com/open?id=1-XyfSuSwBOSa0jvJk0WomByUweryYWrO' },
+            { type: 'Circular', unit: 'DAF', date: '2023-09-21', number: '005', title: 'Ampliación de plazos para la presentación de proyectos de inversión en infraestructura, equipamiento y actividades de extensión, cultura y deporte', file: 'https://drive.google.com/open?id=1xGpjL52RuaLs-90YSN5bcrDjZ4NIDqaZ' },
+            { type: 'Circular', unit: 'DAF', date: '2023-10-16', number: '004', title: 'Requisitos mínimos para las Solicitudes de Compra de Bienes y Servicios bajo Contratación (Bs1 a Bs20.000), a ser procesadas por la División de Adquisiciones', file: 'https://drive.google.com/open?id=1pUFm5MUnq2ZfLLqR8nUbwkwfGgNtJZap' },
+            { type: 'Circular', unit: 'DAF', date: '2023-03-10', number: '001', title: 'Elaboración y presentación del programa anual de contrataciones para la gestión 2023', file: 'https://drive.google.com/open?id=1pafBsdtUy8KSHJXWYQBpd-GoqUK9lANI' },
+
+            { type: 'Circular', unit: 'DPTO PPTO', date: '2023-10-04', number: '007', title: 'Presentación del 3er informe de avance de actividades y proyectos gestión 2023', file: 'https://drive.google.com/open?id=19u_kFKu9n_8Qa3yQVkhphMfYylN1hTDA' },
+            
+            { type: 'Circular', unit: 'DPTO TU', date: '2023-02-02', number: '001', title: 'Presentación de la información de flujo de caja mensual', file: 'https://drive.google.com/open?id=1ClWvYEcHuvYzfwdfS1HQ3HXzBV4ekqXi' },
+            { type: 'Comunicado', unit: 'DPTO TU', date: '2023-05-31', number: 'S/N', title: 'Participación de autoridades en el I congreso nacional extraordinario de universidades', file: 'https://drive.google.com/open?id=1g1h63UIMgCNkinu-lBNrx8V00SfkyRmL' },
+
+            { type: 'Instructivo', unit: 'DPTO CONTAB', date: '2023-01-01', number: '001', title: 'Remitir documentación para escaneo y digitalización', file: 'https://drive.google.com/open?id=1vYGiFzkqgnsiEa-uYSNaZ84CnRur6z_j' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2023-12-12', number: '015', title: 'Presentación de estados de cuentas y notas a los estados financieros gestión 2023', file: 'https://drive.google.com/open?id=1tUIAa8glLWKFeQr7Vb94x4dPlrwWBUJ9' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2023-09-28', number: '014', title: 'Envío oportuno de solicitudes de pago por servicio de consultoría individual de línea', file: 'https://drive.google.com/open?id=1MBsx4AZ-Ap58IWapZWIMQrsKnFRu-fay' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2023-09-19', number: '013', title: 'Documentos de contabilidad resguardados en el archivo contable', file: 'https://drive.google.com/open?id=1IMYHek8kOlnMrdRoBjHBn7YA66H1IoBN' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2023-07-26', number: '010', title: 'Actualización de usuarios del AYNI', file: 'https://drive.google.com/open?id=1EoYSY9aF6CFIzBrd0iNcJGO0oh9SavwS' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2023-07-11', number: '009', title: 'Identificación de los archivos', file: 'https://drive.google.com/open?id=1zD9gK3T3TgiF1IXogbL95GmztfMlJd2E' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2023-06-27', number: '009', title: 'Ajustes contables en la cuenta resultados acumulados', file: 'https://drive.google.com/open?id=1gRso9wH_nuVZJdTQKqInKRJIx8afEtcN' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2023-06-06', number: '008', title: 'Seguimiento de reportes mensuales, adjuntos, correspondiente a los comprobantes no resaltados', file: 'https://drive.google.com/open?id=1qqFOAsN387FprpJUJhzuXaaaPoePc2OE' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2023-05-11', number: '007', title: 'Procedimientos administrativos', file: 'https://drive.google.com/open?id=1QtsccqdcBKyAIXqqIKu43Q5krJOA7P8S' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2023-04-19', number: '006', title: 'Sueldos y salarios revertidos por haberes de gestiones anteriores (2019-2022)', file: 'https://drive.google.com/open?id=1anAurGU-UHtm8D-dlNTqp250gmE4vWgy' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2023-04-17', number: '005', title: 'Archivo contable debe estar ordenado con toda la documentación contable', file: 'https://drive.google.com/open?id=1TMMrh0I2htFb2X_MkbPw-UQ-0AQoxqCk' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2023-04-11', number: '004', title: 'Archivo de comprobantes contables', file: 'https://drive.google.com/open?id=1o57Zf0i5Cd6K-5V9DaXMuztFre0vKI70' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2023-03-16', number: '003', title: 'Archivo de comprobantes contables', file: 'https://drive.google.com/open?id=1gcJzhj6q0aYjILxpCFnll2AfVCu6K5FB' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2023-02-23', number: '002', title: 'Elaboración de los Check List', file: 'https://drive.google.com/open?id=1bbTQZLg665q1U1Bu1pm4ugPrjjE21Exn' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2023-01-17', number: '001', title: 'Se instruye al personal de planta y contratados del departamento de contabilidd presentar información del cargo', file: 'https://drive.google.com/open?id=1hgmVWFbxZLU086LY07vj-Pci492x_3Kl' },
+
+            { type: 'Instructivo', unit: 'DAF', date: '2022-06-03', number: '004', title: 'Pago a pares evaluadores externos en proyectos de evaluación y acreditación financiados por el IDH', file: 'https://drive.google.com/file/open?id=10E9OwMDmA_C-HM_PbkRJOPe2Hm1AZKAZ' },
+            { type: 'Instructivo', unit: 'DAF', date: '2022-02-10', number: '002', title: 'Aplicación de nueva normativa en procesos de contratación de bienes y servicios', file: 'https://drive.google.com/open?id=1URbKoqXR737TQVluRWza-wgslfsutpe1' },
+            { type: 'Instructivo', unit: 'DAF', date: '2022-02-10', number: '002', title: 'Aplicación de nueva normativa en procesos de contratación de bienes y servicios', file: 'https://drive.google.com/open?id=1URbKoqXR737TQVluRWza-wgslfsutpe1' },
+            { type: 'Circular', unit: 'DAF', date: '2022-10-27', number: '015', title: 'Actividades para el Pre cierre contable al 31 de octubre de 2022', file: 'https://drive.google.com/open?id=1Eb7Mri7RTVJcjJ0R4Y4IGJy4nJX-sVMm' },
+            { type: 'Circular', unit: 'DAF', date: '2022-09-14', number: '014', title: 'Ejecución de procesos de contratación en las diferentes modalidades', file: 'https://drive.google.com/open?id=1PBg65NZAP7f1t5HB3iAKhkBcDRx6GgCP' },
+            { type: 'Circular', unit: 'DAF', date: '2022-05-10', number: '006', title: 'Sistema de pago de colegiaturas de postgrado, y facturación electrónica en línea', file: 'https://drive.google.com/open?id=16_FtuByqCJzHZqEvgAeEnThwuFb8N-ro' },
+
+            { type: 'Instructivo', unit: 'DPTO TU', date: '2022-03-07', number: '001', title: 'Información para identificar transferencias del exterior', file: 'https://drive.google.com/open?id=1c64QitDZ8Ntj4DHghr99VAqiqoOA7g7d' },
+            { type: 'Circular', unit: 'DPTO TU', date: '2022-03-14', number: '002', title: 'Beneficiarios de fondos institucionales deberán abrir una cuenta de ahorro en el Banco Unión S.A. para recibir transferencias electrónicas', file: 'https://drive.google.com/open?id=14RUHPCcV8jRijndCB5zFpL8U4T2P6HMC' },
+            { type: 'Circular', unit: 'DPTO TU', date: '2022-01-01', number: '001', title: 'Presentación de la información de flujo de caja mensual', file: 'https://drive.google.com/open?id=1f_xM9azPqtjVqKD4lNmvfa-mVuSrXiSp' },
+
+            { type: 'Instructivo', unit: 'DPTO CONTAB', date: '2022-06-27', number: '001', title: 'Aplicación de manual de manejo de archivo contable', file: 'https://drive.google.com/open?id=1_f5eZxRfq8mJMkcyFk0gjFQKIMyRmZdb' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2022-12-29', number: '003', title: 'Presentación de estados de cuentas y notas a los estados financieros 2022', file: 'https://drive.google.com/open?id=1-_8ZZoC2IscLuNVcR-WecHIUVZ6dLH_o' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2022-04-19', number: '002', title: 'Recomendaciones en la elaboración de notas', file: 'https://drive.google.com/open?id=1KqRekmrjIKIV89UcTILL6H2yR1YMBgGj' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2022-02-17', number: '002', title: 'Cumplimiento del artículo 22(c) sobre registro de gastos según la Resolución Suprema N° 222957 de 2005', file: 'https://drive.google.com/open?id=112_Lr2euFx-ToqcnUZLnNTqbMS-j5B-6' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2022-01-17', number: '001', title: 'Registro obligatorio de salidad y retorno en horario de trabajo', file: 'https://drive.google.com/open?id=1Gvwauks7pnh1x-DC5RdhgynCwQxbzcqK' },
+            
+            { type: 'Instructivo', unit: 'DAF', date: '2021-01-07', number: '001', title: 'Fumigación ambientes', file: 'https://drive.google.com/open?id=1vOjmHnrNs9rGwL17my2voCp-VogBnTyK' },
+            { type: 'Instructivo', unit: 'DAF', date: '2021-01-27', number: '002', title: 'Fumigación ambientes', file: 'https://drive.google.com/open?id=1mRxUR1vSKGqEuXPOd-YEWTNyieiHLfui' },
+            { type: 'Instructivo', unit: 'DAF', date: '2021-03-01', number: '004', title: 'Fumigación ambientes UMSA', file: 'https://drive.google.com/open?id=11MOkNnIpX225KvYQGI_Vi49Ujww4Fo9G' }, 
+            { type: 'Instructivo', unit: 'DAF', date: '2021-03-31', number: '006', title: 'Ampliación al instructivo DAF 001-2020 y circular 005-2020, Informe actividades del teletrabajo', file: 'https://drive.google.com/open?id=1MvJ-kJusJQPdyR40sqrso4WJOL8wpWQg' },
+            { type: 'Circular', unit: 'DAF', date: '2021-06-01', number: '015', title: 'Taller virtual "Contrataciones estatales, subasta electrónica y el mercado virtual estatal"', file: 'https://drive.google.com/open?id=1Yijcln5A-_fiQUbqQXtXVDGwqiUNw04n' },
+            { type: 'Circular', unit: 'DAF', date: '2021-05-27', number: '014', title: 'Taller virtual "Contrataciones estatales, subasta electrónica y el mercado virtual estatal"', file: 'https://drive.google.com/open?id=1ncDbjKMl570CMruX5pmzU9427D5e6zyA' },
+            { type: 'Circular', unit: 'DAF', date: '2021-05-19', number: '013', title: 'Procedimiento para la aplicación del mercado virtual estatal en contratación de bienes, modalidad de contratación menor', file: 'https://drive.google.com/open?id=1wAi_imV2xxFmdoe29k9xK1vqz6ihQ2AM' },
+            { type: 'Circular', unit: 'DAF', date: '2021-05-11', number: '012', title: 'Solicitud de información y documentación', file: 'https://drive.google.com/open?id=1VNKv73sRSpKQVTYvUx-wRpEGC7G6CQk-' },
+            { type: 'Circular', unit: 'DAF', date: '2021-04-21', number: '011', title: 'Solicitud de información y documentación', file: 'https://drive.google.com/open?id=1QQy_b6IDX2Ve_homsMB8vjG1Z2CmPt5w' },
+            { type: 'Circular', unit: 'DAF', date: '2021-04-15', number: '010', title: 'Aplicación método selección de calidad - evaluación propuesta de una obra', file: 'https://drive.google.com/open?id=1aDC89Er_6ckdpm8wQbcycAPrLy8eZsh8' },
+            { type: 'Circular', unit: 'DAF', date: '2021-03-30', number: '009', title: 'Contrataciones de docentes extranjeros', file: 'https://drive.google.com/open?id=1lrYX-oiF_0VU5JPD41vKyWJT7wU-5Xol' },
+            { type: 'Circular', unit: 'DAF', date: '2021-02-11', number: '008', title: 'Solicitud de información y documentación', file: 'https://drive.google.com/open?id=1KYlH-_U_XbJFixYzcAtbZXsfvWu_m4JT' },
+            { type: 'Circular', unit: 'DAF', date: '2021-02-02', number: '007', title: 'Aplicación del nuevo manual de operaciones de SICOES', file: 'https://drive.google.com/open?id=1LbrnaHp8lFnSHmaII8GhANoQ2kdFS1ZS' },
+            { type: 'Circular', unit: 'DAF', date: '2021-01-29', number: '005', title: 'Solicitud de información y documentación', file: 'https://drive.google.com/open?id=1q6eDl2lkYSHioFCdcP6fE6A1wBGis0tZ' },
+            { type: 'Circular', unit: 'DAF', date: '2021-01-29', number: '004', title: 'Solicitud de información y documentación', file: 'https://drive.google.com/open?id=1nKEAKWChsGyZK1IYpZ2FSFTY77AT6kRY' },
+            { type: 'Circular', unit: 'DAF', date: '2021-01-29', number: '003', title: 'Solicitud de información y documentación', file: 'https://drive.google.com/open?id=1tP1JSqFJavRGuzuZAtwBY_bC0AYSSePs' },
+            { type: 'Circular', unit: 'DAF', date: '2021-01-11', number: '002', title: 'Cierre de invetarios de activos fijos 2020', file: 'https://drive.google.com/open?id=1pLqAeDLuddTxta96qUQXlUOFLQ8cEjL5' },
+            { type: 'Circular', unit: 'DAF', date: '2021-01-07', number: '001', title: 'Ajuste integral de estados financieros 2020', file: 'https://drive.google.com/open?id=1ypsB0aA1SGxEYXp3EXnHQfmMyXlqMu8x' },
+            { type: 'Comunicado', unit: 'DAF', date: '2021-02-02', number: '002', title: 'Recaudación matriculas y colegiaturas de postgrados', file: 'https://drive.google.com/open?id=1cCWjyaBdgc9G1QR5c0EWSA4FGsp93JiI' },
+            { type: 'Comunicado', unit: 'DAF', date: '2021-01-18', number: 'S/N', title: 'Recaudación matriculas y colegiaturas de postgrados', file: 'https://drive.google.com/open?id=1YtHjzjKJVug0rMiIHBc34vUTk9mz_xhd' },
+
+            { type: 'Instructivo', unit: 'DPTO TU', date: '2021-12-01', number: '016', title: 'Aperturar cuentas individuales en el banco union S.A. con carácter obligatorio', file: 'https://drive.google.com/open?id=1Up_zK50VoKEB9Hb9Zj1CE69eQeJ2JbNK' },
+            { type: 'Instructivo', unit: 'DPTO TU', date: '2021-12-13', number: '002', title: 'Aplicación obligatorio de la resolución ministerial n° 285-2020 que aprueba el reglamento para la operativa de pago y transferencia electrónica', file: 'https://drive.google.com/open?id=1jk7EZ-3ev-N0YNncR66fHv9edKeU-ga0' },
+            { type: 'Circular', unit: 'DPTO TU', date: '2021-02-02', number: '001', title: 'Presentación de la información de flujo de caja mensual', file: 'https://drive.google.com/open?id=1f_cgr1oQ87_810VIZlniZwmofrgZtmTO' },
+
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2021-09-15', number: '004', title: 'Presentación de información', file: 'https://drive.google.com/open?id=19H-37rQ7taJFEMvsccct67t2pEe474qv' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2021-08-31', number: '003', title: 'Cuenta contable 1221 acciones y participaciones de capital', file: 'https://drive.google.com/open?id=1AtSWPZiiZdLOezueTFK3uxlmc8U-YVqL' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2021-05-11', number: '002', title: 'Cuentas contables 1235 construcciones en proceso de bienes de dominio privado y 1237 estudios y proyectos para construcción de bienes nacionales', file: 'https://drive.google.com/open?id=1f517kkRT9KYJhgLEj1MK_ImPFJHoNilE' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2021-05-11', number: '001', title: 'Aplicación de la suspensión del ajuste por inflación', file: 'https://drive.google.com/open?id=1EQKgJbaJg_c7wuV0YAtGIHM343crIoRZ' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2021-03-29', number: '001', title: 'Registro obligatorio de salidas y retorno', file: 'https://drive.google.com/open?id=1lQzOILRI0v1Sp0rtlC1FdGwuCKd6W7x0' },
+
+            { type: 'Circular', unit: 'DPTO TU', date: '2020-11-10', number: '002', title: 'Prohibición de ingreso de personas ajenas al departamento', file: 'https://drive.google.com/open?id=1ieXZXru4iH1ozCNt8Hl6OgKgHMMe7qPJ' },
+            { type: 'Circular', unit: 'DPTO TU', date: '2020-02-03', number: '001', title: 'Prohibición de la información de flujo de caja mensual', file: 'https://drive.google.com/open?id=17-0VZYKv8F5UQFwSb6dWp1SpAoo3vi1s' },
+
+            { type: 'Instructivo', unit: 'DPTO CONTAB', date: '2020-02-01', number: '001', title: 'Devolución del 7% garantía de cumplimiento de contrato partida 26990 otros', file: 'https://drive.google.com/open?id=1K5swhQSX0HO_-xO09lklGfgrtzQuj1ks' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2020-11-16', number: '002', title: 'Regularización de activos por cierre de gestión', file: 'https://drive.google.com/open?id=1Ua-e1KJ_IfWd9aJt-_3aBrZMNaM99Whi' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2020-11-16', number: '001', title: 'Regularización de saldos de activos por cierre de gestión', file: 'https://drive.google.com/open?id=1G8sUH8CXGpcOxi9cva9x-zr4snnDevS3' },
+
+            { type: 'Instructivo', unit: 'DAF', date: '2019-10-15', number: '010', title: 'Instructivo y agenda para el cierre presupuestario, contable y de tesoreria', file: 'https://drive.google.com/open?id=1Vd_szS0DDCtWsUoP8_oGR3M5pF4BH4_2' },
+            { type: 'Instructivo', unit: 'DAF', date: '2019-05-30', number: '007', title: 'Pago de pares evaluadores, programa de movilidad e intercambio universitario y docentes invitados', file: 'https://drive.google.com/open?id=168xr9LDTB8_MRL1nEiCiLFEbhw2cOWFC' },
+            { type: 'Instructivo', unit: 'DAF', date: '2019-05-20', number: '006', title: 'Contrataciones SABS - ampliación a instructivo DAF 004-2019', file: 'https://drive.google.com/open?id=1Uie0lMPSA_Zj1JVV4Zm19wn_MR9OyCMW' },
+            { type: 'Instructivo', unit: 'DAF', date: '2019-05-10', number: '005', title: 'Ajustes del POA 2019', file: 'https://drive.google.com/open?id=1NSpKFWaf6MORsSMCqLCudz0RpO5Nii6D' },
+            { type: 'Instructivo', unit: 'DAF', date: '2019-04-02', number: '004', title: 'Contrataciones menores - fiscal de servicio', file: 'https://drive.google.com/open?id=1Ln12GSrSE0_K-s6KdeGYTY8Sp93QYs-p' },
+            { type: 'Instructivo', unit: 'DAF', date: '2019-04-25', number: '003', title: 'Procedimiento para el pago de estipendio economico de beca y trabajo dirigido', file: 'https://drive.google.com/open?id=1V30GvgkS6cO8Wfp2ErL8Q1xwSRpHVXiD' },
+            { type: 'Instructivo', unit: 'DAF', date: '2019-04-18', number: '002', title: 'Presentación de kardex para la compra de materiales y suministros', file: 'https://drive.google.com/open?id=1Nqt-Wi_K2S9HmNG87xZ8lCwpUBgLzrM3' },
+            { type: 'Instructivo', unit: 'DAF', date: '2019-04-11', number: '001', title: 'Presentación de formatos 1 y 2', file: 'https://drive.google.com/open?id=1VbC9xnm4JR24hypWHPCPWNivdRX_g5O6' },
+            { type: 'Circular', unit: 'DAF', date: '2019-12-11', number: '020', title: 'Cumplimiento agenda e instructivo de cierre presupuestario, contable y tesorería de la gestión', file: 'https://drive.google.com/open?id=1x1RVxzNn1iqKKM1fOeZgOBdiwyr7cOuR' },
+            { type: 'Circular', unit: 'DAF', date: '2019-12-10', number: '019', title: 'Procedimiento de registro para pago de beneficios socilaes, personas desvinculadas en 01/01/2020', file: 'https://drive.google.com/open?id=177R2TwnOVn6-PeEwe35vhv7IErL7LdAZ' },
+            { type: 'Circular', unit: 'DAF', date: '2019-11-29', number: '018', title: 'Pago a consultores individuales de linea becas estudiantes, trabajo dirigido, servicios públicos y otros', file: 'https://drive.google.com/open?id=1z7PFv0tN3FzgHAiX2L4mnUPn0qh_fGuO' },
+            { type: 'Circular', unit: 'DAF', date: '2019-12-02', number: '017', title: 'Pago beneficios sociales - certificado AFPs', file: 'https://drive.google.com/open?id=16WAsvVEcGx5yZYgDLxquEmAH8t55Ip9H' },
+            { type: 'Circular', unit: 'DAF', date: '2019-11-25', number: '016', title: 'Actividades previas al cierre presupuestario de la gestión 2019', file: 'https://drive.google.com/open?id=1aqRp1iRrLvSm6uVqLI5PnFoMqUEQNc8z' },
+            { type: 'Circular', unit: 'DAF', date: '2019-11-28', number: '015', title: 'Actividades para el pre cierre al 30/11/2019', file: 'https://drive.google.com/open?id=1MSZPFTx2SJgyOQ0gIb1cbk4CrSY6ehla' },
+            { type: 'Circular', unit: 'DAF', date: '2019-11-22', number: '014', title: 'Presentación del 3er informe de avance de actividades y proyectos gestion 2019', file: 'https://drive.google.com/open?id=11sKrGwaeLcu1vk-XWKjE0W4mUQNwZmyc' },
+            { type: 'Circular', unit: 'DAF', date: '2019-10-01', number: '013', title: 'Actividades para el pre cierra al 30/09/2019', file: 'https://drive.google.com/open?id=1R0MLWHLPsmAObH1v3Stc8ndkdawu_Uv8' },
+            { type: 'Circular', unit: 'DAF', date: '2019-08-23', number: '012', title: 'Información y atención - inventariadores', file: 'https://drive.google.com/open?id=1ZczB8FpnXEh5iwYgi5Dunf50JoCnNUo-' },
+            { type: 'Circular', unit: 'DAF', date: '2019-08-22', number: '011', title: 'Compra de pasajes aéreos', file: 'https://drive.google.com/open?id=1H647ZboeeNmI6SojlETezD40LAF5flP3' },
+            { type: 'Circular', unit: 'DAF', date: '2019-07-04', number: '010', title: 'Procesos pendientes de registro en el SICOES', file: 'https://drive.google.com/open?id=1w2VnTHtS22uGFkyq2ELxAL2_fGQJVY2W' },
+            { type: 'Circular', unit: 'DAF', date: '2019-06-24', number: '009', title: 'Control de asistencia de consultores individuales de línea', file: 'https://drive.google.com/open?id=1yfW1fXYJSn3W4k5j26seTDqt_bzh8dDs' },
+            { type: 'Circular', unit: 'DAF', date: '2019-06-24', number: '008', title: 'Orden cronológico de la documentación que debe ser presentada para la adquisición de bienes y/o servicios', file: 'https://drive.google.com/open?id=1JUOzH4O6nyxyfrD1AyODOxnhH-xDyfWV' },
+            { type: 'Circular', unit: 'DAF', date: '2019-06-25', number: '007', title: 'Actividades para el pre cierre al 30/06/2019', file: 'https://drive.google.com/open?id=1G2ZJlEoioeq-02Wvu3EqdHm5CW5S4oe5' },
+            { type: 'Circular', unit: 'DAF', date: '2019-05-02', number: '006', title: 'Agenda de mpdificaciones y avaluación POA 2019', file: 'https://drive.google.com/open?id=1lHZEDUX73n0zbugjel03E4ARsWZXCwSj' },
+            { type: 'Circular', unit: 'DAF', date: '2019-04-18', number: '005', title: 'Informe de Auditoría Interna N° 004-2019 sobre control interno y confiabilidad de registros y estados financieros al 31/12/2018', file: 'https://drive.google.com/open?id=1yPNhvyp2FlJd-IhPyeptOeA-og84rdF1' },
+            { type: 'Circular', unit: 'DAF', date: '2019-05-17', number: '004', title: 'Bancos corresponsales en euros y dólares estadounidenses de banco central de Bolivia', file: 'https://drive.google.com/open?id=1a-Yiz0JOPyaX0bJFvP-5sOjOCCxqcwZP' },
+            { type: 'Circular', unit: 'DAF', date: '2019-05-12', number: '003', title: 'Horario límite de recepción de cheques', file: 'https://drive.google.com/open?id=17jiOjbEnjLy3fYsqaD4eN5MDRLATiL6B' },
+            { type: 'Circular', unit: 'DAF', date: '2019-02-21', number: '002', title: 'Información y documentación uso y destino - Recursos IDH 2018', file: 'https://drive.google.com/open?id=1kq13h456eSFhTMaeqdhJkDcVPp_EnCzh' },
+            { type: 'Circular', unit: 'DAF', date: '2019-02-03', number: '001', title: 'Contratación de consultorías de línea para dptos. asesoría jurídica y auditoría interna', file: 'https://drive.google.com/open?id=14ExguO5ptFuPCMLJhGheFfObSvSfRojm' },
+            { type: 'Comunicado', unit: 'DAF', date: '2019-03-26', number: 'S/N', title: 'Incentivo al consumo de productos hechos en Bolivia del segundo aguinaldo', file: 'https://drive.google.com/open?id=1UFL3kMlRp-hJIVlDA1FT0riHMRCEW-kl' },
+            { type: 'Comunicado', unit: 'DAF', date: '2019-04-02', number: 'S/N', title: 'Incentivo al consumo de productos hechos en Bolivia del segundo aguinaldo', file: 'https://drive.google.com/open?id=1F1cxqVcPWApW9wNi8n6azfiEaYkcIFxT' },
+
+            { type: 'Instructivo', unit: 'DPTO TU', date: '2019-05-22', number: '002', title: 'Aplicación resolución HCU nro 359-2019 sobre derecho de admisión, adición 5% del costo de inscripción al curso preuniversitario y examen de dispensación', file: 'https://drive.google.com/open?id=1wrVdRUrY2OX0mhLhM-AxU4BDPFdirEMZ' },
+            { type: 'Circular', unit: 'DPTO TU', date: '2019-11-29', number: '004', title: 'Aplicación articulo decimo/19, resol huc nro 347-2019', file: 'https://drive.google.com/open?id=1Hbupo3jRrZfoPvMnq-1iu9nShE-OA2_M' },
+            { type: 'Circular', unit: 'DPTO TU', date: '2019-04-16', number: '002', title: 'Minimizar documentación física en la presentación de flujo de caja', file: 'https://drive.google.com/open?id=1Q-j12y5EZbX01wyAOKPcYsMz30EUUu6r' },
+            { type: 'Circular', unit: 'DPTO TU', date: '2019-02-01', number: '001', title: 'Presentación de la información de flujo de caja mensual', file: 'https://drive.google.com/open?id=1G2RotbubkpATFTDNvDC4UHImFisUsy_k' },
+            
+            { type: 'Instructivo', unit: 'DPTO CONTAB', date: '2019-08-29', number: '003', title: 'Pagos con abono automatico y retenciones impositivas', file: 'https://drive.google.com/open?id=1xh1v66sGrce9CTRmyMxkL-KVY7XdOty_' },
+            { type: 'Instructivo', unit: 'DPTO CONTAB', date: '2019-04-24', number: '002', title: 'Presentación documentación para pago becas y tranajo dirigido, con abono automático', file: 'https://drive.google.com/open?id=1I3fXmaorNBKufJ25_F7-pM0E3bTDaqM6' },
+            { type: 'Instructivo', unit: 'DPTO CONTAB', date: '2019-03-29', number: '001', title: 'Presentación documentación para pago consultores individuales de línea, servicios, becas y trabajo dirigido, con abono automático', file: 'https://drive.google.com/open?id=1U2h2KJzeR0w9uqzNvnafbVnb3_CII0l1' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2019-11-04', number: '002', title: 'Regularización de activos por cierre de gestión', file: 'https://drive.google.com/open?id=17lyw8W5lDu6HOQPu4gBC5NsaqhGVPB2T' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2019-11-04', number: '001', title: 'Regularización de activos por cierre de gestión', file: 'https://drive.google.com/open?id=1aP2ok3-43MyAaxNx2RNdrumkOgEOGH8U' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2019-06-24', number: '007', title: 'Procedimiento para la adquisición de servicios de mantenimiento y/o repuestos', file: 'https://drive.google.com/open?id=14Xqv8jXoqmtPKgwcfqoSinLZHUKDNgcg' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2019-03-06', number: '006', title: 'Orden en el cual debe ser presentada la documentación para descargo de fondos en avance', file: 'https://drive.google.com/open?id=1bMpbduPxgVoT7iqjTQXnrqEIuHcyXCMG' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2019-03-06', number: '004', title: 'Orden en el cual debe ser presentada la documentación para compras menores de 1 a 50.000BS', file: 'https://drive.google.com/open?id=1hP4BMiLH46cZPuS9jeGL6mj4M7MhHuWP' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2019-02-28', number: '003', title: 'Cargos en pasajes y viaticos', file: 'https://drive.google.com/open?id=1hufpP0QbKOEol4aZc2BuBPyjPi3u2NQq' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2019-02-19', number: '002', title: 'Registro salida y retorno', file: 'https://drive.google.com/open?id=1C6iWGVt-h311xx4Tfmd1dKI_RJp56Su-' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2019-02-13', number: '001', title: 'Modelo planilla de pagos generales', file: 'https://drive.google.com/open?id=1FF_tluyWGKgTRHOl5OBiaWzwhBoC2NVA' },
+
+            { type: 'Instructivo', unit: 'DIV STOT', date: '2019-11-28', number: '002', title: 'Cronograma y presentación de reportes impositivos periodo diciembre 2019', file: 'https://drive.google.com/open?id=1ju3kxWZY-d1OYqTIUxnK8EwFbHAcI2YS' },
+            { type: 'Circular', unit: 'DIV STOT', date: '2019-06-25', number: '001', title: 'Actualización de datos para "Generación de código de dependiente RC-IVA"', file: 'https://drive.google.com/open?id=1D37Po3oI0TrSlA_8Jm5jNQxz4zEY-2hV' },
+            
+            { type: 'Instructivo', unit: 'DAF', date: '2018-12-21', number: '010', title: 'Pago en especie del segundo aguinaldo "Esfuerzo por Bolivia"', file: 'https://drive.google.com/open?id=1L-RXs88vXyQ2sv-dnBywO2Gb48VuOi9H' },
+            { type: 'Instructivo', unit: 'DAF', date: '2018-12-18', number: '008', title: 'Pago del segundo aguinaldo "Esfuerzo por Bolivia"', file: 'https://drive.google.com/open?id=1Bi7k_RJ1BT27PCKrZBr2v7K10hYXcAk5' },
+            { type: 'Instructivo', unit: 'DAF', date: '2018-12-01', number: '006', title: 'Entrega, seguimiento y cobro de todos los cheques fiscales en transito', file: 'https://drive.google.com/open?id=1oBp2otOE9_znAtgYM77yXJhZyIX7hkaB' },
+            { type: 'Instructivo', unit: 'DAF', date: '2018-11-01', number: '005', title: 'Plantilla impositiva y formulario 110', file: 'https://drive.google.com/open?id=1uKkS1wG_HkqLiRXfdbOekeVKD7SpWMOo' },
+            { type: 'Instructivo', unit: 'DAF', date: '2018-08-27', number: '004', title: 'Procedimiento pago consultores individuales de línea servicios y becas trabajo', file: 'https://drive.google.com/open?id=1SpFpOeINmBvR0YieNvDsTYUIU9QJRm03' },
+            { type: 'Instructivo', unit: 'DAF', date: '2018-07-13', number: '003', title: 'Ajuste del POA 2018', file: 'https://drive.google.com/open?id=1eeRcJZZWBSGmvso_-kqG2MTvSrJkhFO_' },
+            { type: 'Instructivo', unit: 'DAF', date: '2018-05-01', number: '002', title: 'Procedimiento llenado, envío e informe del formulario 608', file: 'https://drive.google.com/open?id=1UvIQVFHIUPo4ei-3FOKOByKX1UX5SD1Y' },
+            { type: 'Circular', unit: 'DAF', date: '2018-12-03', number: '029', title: 'Pago a consultores, becarios y otros servicios', file: 'https://drive.google.com/open?id=1a6yYbJILVPgM9AHwZe2pZp-8b47I1V5q' },
+            { type: 'Circular', unit: 'DAF', date: '2018-11-30', number: '028', title: 'Acciones previas al cierre de la gestión financiera, presupuestaria, de tesorería y contable', file: 'https://drive.google.com/open?id=12AvsFhJIONodi-S4kdXyoCyIMJ69C_mQ' },
+            { type: 'Circular', unit: 'DAF', date: '2018-11-26', number: '027', title: 'Fechas de presentación del 3er informe de avance de actividades y proyectos gestión 2018', file: 'https://drive.google.com/open?id=1mM6BN8bGZTuxOxf_dVNVtOuRHm4S6YqT' },
+            { type: 'Circular', unit: 'DAF', date: '2018-11-30', number: '026', title: 'Contratación consultores y otros', file: 'https://drive.google.com/open?id=1sZ9RjCwtTZ5mp1wT1xlR23U9ppY8EcLD' },
+            { type: 'Circular', unit: 'DAF', date: '2018-11-27', number: '025', title: 'Protocolización contratos monto superior a BS 1.000.000', file: 'https://drive.google.com/open?id=1o1H6_yVqOFieEV_9_lwqDPCDTtB6Lo3b' },
+            { type: 'Circular', unit: 'DAF', date: '2018-08-23', number: '024', title: 'Designación responsables de procesos de contratación especializada de bienes y servicios en el extranjero', file: 'https://drive.google.com/open?id=1kf97F_abKy3CUauQOtPnv4o8UP9II3nH' },
+            { type: 'Circular', unit: 'DAF', date: '2018-11-26', number: '023', title: 'Presentación del 3er informe de avance de actividades y proyectos', file: 'https://drive.google.com/open?id=1BnIT1Puwm9ryV6qOpGlmXXdN5b6DIABd' },
+            { type: 'Circular', unit: 'DAF', date: '2018-11-13', number: '022', title: 'Entrega de activos fijos, documentos, información y otras a cargo de personal eventual', file: 'https://drive.google.com/open?id=1cuIxCh523HoP4-S2WUh0bVE0vo5XO1nT' },
+            { type: 'Circular', unit: 'DAF', date: '2018-10-30', number: '021', title: 'Instructivo para el cierre presupuestario, contable y de tesorería de la gestión fiscal 2018', file: 'https://drive.google.com/open?id=1FSoOD322VVatTyGf_zwL2ycVfp7Jw_75' },
+            { type: 'Circular', unit: 'DAF', date: '2018-10-09', number: '019', title: 'Instructivo para el cierre presupuestario, contable y de tesorería, correspondiente al ejercicio fiscal 2018', file: 'https://drive.google.com/open?id=1I1IQ2-cDLZB56cEpV3Le4aKN4hRGjJt3' },
+            { type: 'Circular', unit: 'DAF', date: '2018-09-25', number: '018', title: 'Presentación del 1er y 2do informe de avance de actividades y proyectos gestión 2018', file: 'https://drive.google.com/open?id=1MOm44Oq-OQ3fhHcAgDtjDsV-Dt6-PkQT' },
+            { type: 'Circular', unit: 'DAF', date: '2018-09-13', number: '017', title: 'Segundo pre cierra al 30/09/2018', file: 'https://drive.google.com/open?id=1hOsnj2-Rx1eA8TWOf6c4N77pHFNMiQGl' },
+            { type: 'Circular', unit: 'DAF', date: '2018-07-19', number: '015', title: 'Directrices presupuestarias 2019', file: 'https://drive.google.com/open?id=1KB0Qtb06Ayh6XqXqhViXzkIAfMSwyh4v' },
+            { type: 'Circular', unit: 'DAF', date: '2018-07-13', number: '014', title: 'Ajuste del POA 2018 con miras a la formulación del POA y presupuesto 2018', file: 'https://drive.google.com/open?id=1ex9WmJLSy1OM9cYOjUk5vUVI2IplaEKr' },
+            { type: 'Circular', unit: 'DAF', date: '2018-07-13', number: '013', title: 'Ajuste del POA 2018 con miras a la formulación del POA y presupuesto 2018', file: 'https://drive.google.com/open?id=1vHYtYZGNYFszrufAHtkPEZ5uKK4S3iL-' },
+            { type: 'Circular', unit: 'DAF', date: '2018-06-01', number: '012', title: 'Esquema operativo para el pago de beneficios sociales', file: 'https://drive.google.com/open?id=1auQo7kC6HEE67HKsz35aVrLS-uRSgoQq' },
+            { type: 'Circular', unit: 'DAF', date: '2018-05-25', number: '011', title: 'Politicas contables para el ejercicio fiscal 2018 de la UMSA', file: 'https://drive.google.com/open?id=1VURfZuokUWnAaqV6bUIJSv5QyjgYIGbU' },
+            { type: 'Circular', unit: 'DAF', date: '2018-05-18', number: '010', title: 'Actividades para el pre cierre al 30/06/2018', file: 'https://drive.google.com/open?id=10OUx3UnINiUvHdm0rNQm7Tb3YUE4TZPr' },
+            { type: 'Circular', unit: 'DAF', date: '2018-03-02', number: '009', title: 'Reglamento para el registro, reporte y remisión de contratos CGE/027/2017 - RE/CE-026', file: 'https://drive.google.com/open?id=1O_FGLq_Am1m1DF3Obm2tjXiDGHgn_l61' },
+            { type: 'Circular', unit: 'DAF', date: '2018-02-22', number: '008', title: 'Procedimiento para afectuar descargo o retenciones impositivas servicios de té o refrigerios', file: 'https://drive.google.com/open?id=1N5L-1cfZGmxWdrbLyhvDdKzVeyx_yN1r' },
+            { type: 'Circular', unit: 'DAF', date: '2018-02-16', number: '007', title: 'Sistema zodiaco capricornio (Compras)', file: 'https://drive.google.com/open?id=1bm4fLosA15nUO4ObeojRGTkc85fSmthB' },
+            { type: 'Circular', unit: 'DAF', date: '2018-01-17', number: '006', title: 'Pago deuda flotanta gestión de 2018', file: 'https://drive.google.com/open?id=1qMZUgs6yBb4z4jIBZ_q27-FcMxompDiU' },
+            { type: 'Circular', unit: 'DAF', date: '2018-01-09', number: '005', title: 'Cuentas de usuario del sistema de comprar y contrataciones capricornio', file: 'https://drive.google.com/open?id=1tynXlzY3NiqoqpjEs_qu58PlrvhTuEEs' },
+            { type: 'Circular', unit: 'DAF', date: '2018-01-08', number: '004', title: 'Presentación de informe de ejecución presupuestaria recursos IDH', file: 'https://drive.google.com/open?id=1IrnRr4lhbRIEH6MC-a1_lpwwxq3W_JCU' },
+            { type: 'Circular', unit: 'DAF', date: '2018-01-08', number: '003', title: 'Cumplimiento de plazos para la presentación de los estados financieros 2017', file: 'https://drive.google.com/open?id=18Ugi0J9CS0wvgKQE4VvNwRiJ3jQi5f05' },
+            { type: 'Circular', unit: 'DAF', date: '2018-01-08', number: '002', title: 'Emisión de cheques fiscales', file: 'https://drive.google.com/open?id=1dpYK4zcr8M3nulJkrwJmUpCsF-jioZX_' },
+            { type: 'Circular', unit: 'DAF', date: '2018-01-08', number: '001', title: 'Calendario de matriculación electrónica de pre grado', file: 'https://drive.google.com/open?id=1WuVvGtnGq0VaAsyVhmlvS-4elXrqmdIW' },
+            { type: 'Comunicado', unit: 'DAF', date: '2018-09-20', number: 'S/N', title: 'Taller sobre la elaboración y aplicación de recursos IDH', file: 'https://drive.google.com/open?id=1gakqsLGMp3VRLekrdTmR6yqhEFivieFx' },
+
+            { type: 'Instructivo', unit: 'DPTO TU', date: '2018-02-15', number: '002', title: 'Cheques en transito gestión 2017 individuales y agrupados cuya fecha de validez ha expirado', file: 'https://drive.google.com/open?id=1IEH0furXzi3bXx5c2ZnFjg8kKKj7xvNd' },
+            { type: 'Instructivo', unit: 'DPTO TU', date: '2018-01-01', number: '001', title: 'Procedimiento para el envío de planilla de sueldos y declaración jurada al Ministerio de Trabajo', file: 'https://drive.google.com/open?id=1es7wssmu8BPgZo8L175QV9BoBRe1A2--' },
+            { type: 'Circular', unit: 'DPTO TU', date: '2018-02-09', number: '002', title: 'Presentación de la información de flujo de caja mensual', file: 'https://drive.google.com/open?id=10vce8lQrBXZ0MxsaK5wxwn6b5AgpBjJc' },
+            { type: 'Circular', unit: 'DPTO TU', date: '2018-01-18', number: '001', title: 'Registros en SIGEP por la recaudación del último día del mes de sistemas de facturación', file: 'https://drive.google.com/open?id=1nxJf7gOb0FunKFdqJsnYu8NtTCZsB1MQ' },
+
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2018-12-14', number: '001', title: 'Formato de presentación de estados de cuenta en la preparación y presentación de estados financieros gestión 2018', file: 'https://drive.google.com/open?id=1gWXxaPhnHep-_TNItfyX1sR14_fsjuYW' },
+
+            { type: 'Circular', unit: 'DIV BINV', date: '2018-02-28', number: '001', title: 'Manejo de activos fijos', file: 'https://drive.google.com/open?id=1RkmVgR3qHceUwH6tQVQPVeRt0EL3LPV4' },
+
+            { type: 'Instructivo', unit: 'DAF', date: '2017-10-10', number: '007', title: 'Instructivo para la realización de exámenes específicos de seguimiento al cumplimiento de las recomendaciones', file: 'https://drive.google.com/open?id=1I6xQxtGRso7wyTiBkWeY4HqnzhYWuewf' },
+            { type: 'Instructivo', unit: 'DAF', date: '2017-09-21', number: '006', title: 'Retensión por pago de consumo a COTEL en favor del servicio de impuestos nacionales', file: 'https://drive.google.com/open?id=1SsG7qzHJcJA_aID_uPHXCq7iwpNkqmHO' },
+            { type: 'Instructivo', unit: 'DAF', date: '2017-07-22', number: '005', title: 'Cumplimiento - Procedimiento de revalorización por mantenimiento y/o reparación de bienes', file: 'https://drive.google.com/open?id=1ncut3b6wsM7hQBsVV3b1f1RnBiCG42HD' },
+            { type: 'Instructivo', unit: 'DAF', date: '2017-05-31', number: '004', title: 'Cumplimiento - Observaciones del informe de auditoría relativo al "Primer seguimiento al informe operacional al sistemas de programación de operaicones de la UMSA', file: 'https://drive.google.com/open?id=1mtpdhRCv_rm1P4FYJ9eQPsp7V1LNEj1B' },
+            { type: 'Instructivo', unit: 'DAF', date: '2017-03-09', number: '003', title: 'Fechas límite para la entrega de retenciones RC-IVA al Servicio nacional de impuestos internos', file: 'https://drive.google.com/open?id=1_f_iUl_b_8CwP7E0bHhae9TI6HcxT6Hg' },
+            { type: 'Instructivo', unit: 'DAF', date: '2016-07-26', number: '001', title: 'Pago de refrigerio a consultores', file: 'https://drive.google.com/open?id=1i4K9EmJTrU5179gDBrwnVoum6eSDm29c' },
+            { type: 'Circular', unit: 'DAF', date: '2017-10-16', number: '020', title: 'Instructivo y agenda para el cierre presupuestario, contable y de tesorería', file: 'https://drive.google.com/open?id=1-JMpjJoJ9hfpxHlfDq8wioR94X0IaYVY' },
+            { type: 'Circular', unit: 'DAF', date: '2017-10-09', number: '019', title: 'Visto bueno del DAF', file: 'https://drive.google.com/open?id=1L4cy7T58DU9kj6pKgbDVtoXK4PX7bYQ1' },
+            { type: 'Circular', unit: 'DAF', date: '2017-09-08', number: '018', title: 'Composición de saldos - publicación MEFP', file: 'https://drive.google.com/open?id=1ryouSOcBfe-xZZbOqw6YDf2sDF7FMtNH' },
+            { type: 'Circular', unit: 'DAF', date: '2017-08-16', number: '017', title: 'Uso de fondos universitarios', file: 'https://drive.google.com/open?id=1zlbiuVeb-WhUKKkuXb1B-EC-in0vYIyA' },
+            { type: 'Circular', unit: 'DAF', date: '2017-08-25', number: '016', title: 'Regularización de pendientes de registro de distribución por concepto de racaudación', file: 'https://drive.google.com/open?id=1IFTFgWbcFz7BwHdos_a4JhNSU6W6AxLS' },
+            { type: 'Circular', unit: 'DAF', date: '2017-08-02', number: '015', title: 'Esquema operativo para el pago de beneficios sociales', file: 'https://drive.google.com/open?id=1_asTspUEvQe1fBBk6k-edWtOjfrWyTN2' },
+            { type: 'Circular', unit: 'DAF', date: '2017-08-02', number: '014', title: 'Sistema de bancarización zodiaco libra 2', file: 'https://drive.google.com/open?id=1Sah4d6qB4-pzTYz1fUJMlEB9YdZeQF7c' },
+            { type: 'Circular', unit: 'DAF', date: '2017-07-12', number: '013', title: 'Rotación de responsables de las unidades desconcentradas de infraestructura', file: 'https://drive.google.com/open?id=14bQEii7d56qpLfnJZ2qYVoKhX_0mDU21' },
+            { type: 'Circular', unit: 'DAF', date: '2017-07-12', number: '012-A', title: 'Sistema de gestión de activos fijos zodiaco virgo', file: 'https://drive.google.com/open?id=1wStx80ns9QG2fLsR2kwpW8hM9bZFHrE9' },
+            { type: 'Circular', unit: 'DAF', date: '2017-08-03', number: '012', title: 'Relación con el personal', file: 'https://drive.google.com/open?id=1o0U21b-oZhDDc3t78FeYhJl6F2YmZPV_' },
+            { type: 'Circular', unit: 'DAF', date: '2017-07-06', number: '011-A', title: 'Agenda de trabajo para la formulación del POA y presupuesto 2018', file: 'https://drive.google.com/open?id=1JLbu9Qi0c9gc-T22GsoYQuYMbQfMs5GT' },
+            { type: 'Circular', unit: 'DAF', date: '2017-05-17', number: '011', title: 'Revisión de saldos del balance de apertura - gestión 2017', file: 'https://drive.google.com/open?id=1y4lSM2IFHzdmkKIiHZJMGALTjsToJY3E' },
+            { type: 'Circular', unit: 'DAF', date: '2017-03-31', number: '010', title: 'Uso de la página web de la DAF para comunicaciones oficiales', file: 'https://drive.google.com/open?id=184aB2OyPe5JASjLzXABp0LJTk99vkNM2' },
+            { type: 'Circular', unit: 'DAF', date: '2017-04-03', number: '009', title: 'Registro de deudores en el sistema CONTROLEG II', file: 'https://drive.google.com/open?id=17TqFYFPRMeR49ZP63o2UUaYHezgIfZAR' },
+            { type: 'Circular', unit: 'DAF', date: '2017-02-22', number: '008', title: 'Suspensión aplicación resolución rectoral 035/17 e instructivo tributaria DAF 001-2017', file: 'https://drive.google.com/open?id=1PnoKPWemKZYKH6NUjRZQMof2Tx-jPJ_e' },
+            { type: 'Circular', unit: 'DAF', date: '2017-02-07', number: '005', title: 'Contratación de consultores en línea', file: 'https://drive.google.com/open?id=12cMdQdJUDkqgF53_oguVK6b0eQObhzK4' },
+            { type: 'Circular', unit: 'DAF', date: '2017-02-09', number: '004', title: 'Plazos para el registro y reporte de contratos', file: 'https://drive.google.com/open?id=1kq2lA6ypXnrT3Z1RH41SxnrubXFuPTN2' },
+            { type: 'Circular', unit: 'DAF', date: '2017-01-20', number: '002', title: 'Presentación de copias de notas a los estados financieros 2016', file: 'https://drive.google.com/open?id=1AucNc6-IDYJtckvez_mZQStaE3kAg8GW' },
+            { type: 'Circular', unit: 'DAF', date: '2017-01-16', number: '001', title: 'Reportes y registros contratos (RE/CE-026 y RE/CE-027)', file: 'https://drive.google.com/open?id=154UylX71n2uY7nIpDOMw8VZjdNmKVpCw' },
+
+            { type: 'Instructivo', unit: 'DPTO TU', date: '2017-08-17', number: '004', title: 'Procedimiento por extravio de cheque fiscal de la cuenta universitaria', file: 'https://drive.google.com/open?id=1myPUjm1MedYlV5fp9Ck-boeSquZ4xih6' },
+            { type: 'Instructivo', unit: 'DPTO TU', date: '2017-01-27', number: '001', title: 'Registrar retenciones por multas en servicios de unidades administrativas desconcentradas, sin apropiación de acreedor', file: 'https://drive.google.com/open?id=1N9hivm5oiHZWxjbsblgW2xYI2MM30eU0' },
+            { type: 'Circular', unit: 'DPTO TU', date: '2017-02-10', number: '002', title: 'Presentación de la información de flujo de caja mensual', file: 'https://drive.google.com/open?id=1It3L9i1-gtWLEvIXahgNXbEHuMhEdh7b' },
+            { type: 'Comunicado', unit: 'DPTO TU', date: '2017-04-06', number: '002', title: 'Dosificación de cheques en SIGEP', file: 'https://drive.google.com/open?id=100A8iZu6NKJ5WZl1b6hHWxJ4VhEmEq6C' },
+            { type: 'Comunicado', unit: 'DPTO TU', date: '2017-02-01', number: '001', title: 'Uso de acreedores SIGEP', file: 'https://drive.google.com/open?id=13ThrxY6kMvGkSRpTWe623RNSKYRhtu0z' },
+
+            { type: 'Instructivo', unit: 'DPTO PPTO', date: '2022-06-15', number: '002', title: 'Instructivo de Procedimientos', file: 'instructivo.pdf' },
+            { type: 'Circular', unit: 'DPTO CONTAB', date: '2021-05-10', number: '003', title: 'Circular de Contabilidad', file: 'circular_contab.pdf' },
+            { type: 'Comunicado', unit: 'DIV ADQ', date: '2023-03-05', number: '004', title: 'Comunicado de Adquisiciones', file: 'comunicado_adq.pdf' },
+            { type: 'Instructivo', unit: 'DIV BINV', date: '2020-08-20', number: '005', title: 'Instructivo de Inventarios', file: 'instructivo_binv.pdf' },
+            { type: 'Circular', unit: 'DPTO TU', date: '2019-12-01', number: '006', title: 'Circular de Tesoro', file: 'circular_tu.pdf' },
+            { type: 'Instructivo', unit: 'DAF', date: '2024-01-15', number: '008', title: 'Instructivo de Finanzas', file: 'instructivo_finanzas.pdf' }
+        ];
+        allResults.sort((a, b) => new Date(b.date) - new Date(a.date));
+        // Inicializar la tabla con resultados vacíos
+        filterResults();
+    </script>
+</body>
+
+</html>
